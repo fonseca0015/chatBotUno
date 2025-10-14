@@ -1,0 +1,18 @@
+# Define a imagem base do Python que vamos usar
+FROM python:3.9-slim
+
+# Define o diretório de trabalho dentro do ambiente
+WORKDIR /app
+
+# Copia o arquivo de dependências e instala as bibliotecas
+COPY requirements.txt requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copia todos os outros arquivos do seu projeto para dentro do ambiente
+COPY . .
+
+# Expõe a porta que o Flask/Gunicorn vai usar para receber conexões
+EXPOSE 5000
+
+# Comando final para iniciar a sua API
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "main:app"]
