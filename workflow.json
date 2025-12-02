@@ -1,0 +1,331 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://1c2f31c3efdb.ngrok-free.app/search",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"query\": \"{{ $json.body.pergunta }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        736,
+        -112
+      ],
+      "id": "ba21b3b7-8385-43d0-916e-b203506c4760",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/embeddings",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "input",
+              "value": "={{ $json.chatInput }}"
+            },
+            {
+              "name": "model",
+              "value": "text-embedding-3-small"
+            },
+            {
+              "name": "encoding_format",
+              "value": "float"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2032,
+        496
+      ],
+      "id": "b052613c-23d6-4215-8356-f4463e571e7a",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "c7683d30-5ffb-448b-a9cb-2dac0ac443bb",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        528,
+        -112
+      ],
+      "id": "9ba714f1-2877-4fd5-aeeb-9be4ca0c1c25",
+      "name": "Webhook",
+      "webhookId": "c7683d30-5ffb-448b-a9cb-2dac0ac443bb"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=---\nCONTEXTO:\n{{ $json.texto_completo }}\n---\nFONTES:\n{{ $json.url }}\n---\nPERGUNTA DO USUÁRIO:\n{{ $('Webhook').item.json.body.pergunta }}\n--- ",
+        "options": {
+          "systemMessage": "Você é o Assistente Virtual da UNO ERP, um especialista amigável e prestativo. Sua principal missão é ajudar os usuários a resolverem suas dúvidas sobre o sistema.\n\nSuas regras são:\n\nSeja Amigável e Intuitivo: Use uma linguagem clara, simples e direta. Você pode usar emojis para tornar a comunicação mais leve e visual (por exemplo: ✅, ❌, 👉, 💡).\n\nBaseie-se nos Fatos: Responda exclusivamente com base nas informações fornecidas na seção \"CONTEXTO\". Não invente funcionalidades ou passos que não estejam descritos ali.\n\nSeja Objetivo: Vá direto ao ponto. Se a pergunta for sobre um processo, organize a resposta em passos claros (ex: 1º Passo, 2º Passo...).\n\nCite a Fonte: Ao final de cada resposta baseada no contexto, sempre inclua a(s) fonte(s) usadas, listando as URLs fornecidas na seção \"FONTES\". Se atente a devolver na referência apenas a url contida no json \"{{ $json.url }}\". Qualquer outra URL que venha do texto fora disso é algo do conteúdo e não deve ser citada em \"referência\", apenas no corpo do conteudo da resposta.\n\nSe Não Souber, Diga: Se a resposta para a pergunta do usuário não estiver no contexto fornecido, responda de forma honesta:\n\n💡 Puxa, não encontrei informações sobre isso na minha base de conhecimento. Você poderia tentar reformular a pergunta?\n\nInterações Sociais e Saudações:\n\nSe o usuário enviar apenas uma saudação simples (por exemplo: “oi”, “olá”, “bom dia”, “boa tarde”, “tudo bem?”, “como vai?”, etc.), não use o contexto técnico.\n\nNesse caso, apenas cumprimente de volta de forma simpática e breve, algo como:\n\nOlá! 😊 Como posso te ajudar hoje com o UNO ERP?\n\nSe o usuário fizer uma pergunta sobre o sistema (mencionar funcionalidades, erros, processos, módulos, relatórios, etc.), aí sim use o CONTEXTO para elaborar a resposta."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        928,
+        -112
+      ],
+      "id": "983a767a-35d8-4875-a2e4-d66c96728823",
+      "name": "AI Agent",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "Você é o Assistente Virtual da UNO ERP, um especialista amigável e prestativo. Sua principal missão é ajudar os usuários a resolverem suas dúvidas sobre o sistema.\n\n**Suas regras são:**\n1.  **Seja Amigável e Intuitivo:** Use uma linguagem clara, simples e direta. Você pode usar emojis para tornar a comunicação mais leve e visual (por exemplo: ✅, ❌, 👉, 💡).\n2.  **Baseie-se nos Fatos:** Responda **exclusivamente** com base nas informações fornecidas na seção \"CONTEXTO\". Não invente funcionalidades ou passos que não estejam descritos ali.\n3.  **Seja Objetivo:** Vá direto ao ponto. Se a pergunta for sobre um processo, organize a resposta em passos claros (ex: 1º Passo, 2º Passo...).\n4.  **Cite a Fonte:** Ao final de cada resposta, sempre inclua a(s) fonte(s) que você usou, listando as URLs fornecidas na seção \"FONTES\".\n5.  **Se Não Souber, Diga:** Se a resposta para a pergunta do usuário não estiver no contexto fornecido, responda de forma honesta: \"💡 Puxa, não encontrei informações sobre isso na minha base de conhecimento. Você poderia tentar reformular a pergunta?\"",
+              "role": "assistant"
+            },
+            {
+              "content": "=---\nCONTEXTO:\n{{ $json.metadatas[0][0].original_text }}\n---\nFONTES:\n{{ $json.metadatas[0][0].source_url }}\n---\nPERGUNTA DO USUÁRIO:\n{{ $('Webhook').item.json.body.pergunta }}\n---"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        1632,
+        528
+      ],
+      "id": "093bccc8-5ebf-489b-8481-52bce8d2e3a4",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "wZ2xAWJ3FeLZmtRp",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        944,
+        80
+      ],
+      "id": "1a6f39a4-b2fa-4e8f-bd10-91250f0e5000",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "wZ2xAWJ3FeLZmtRp",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1664,
+        -112
+      ],
+      "id": "7de5c561-bf0a-47ab-8de0-d9ca64ff2f87",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5fa6fc9d-6a81-4dd1-88ce-68827c1d5447",
+              "name": "resposta",
+              "value": "={{ $json.resposta }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1440,
+        -112
+      ],
+      "id": "dba25ff7-0c75-441f-b7c1-6785a8e259b2",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  const resposta = item.json.output || \"\";\n\n  let respostaHTML = resposta;\n\n  // 1️⃣ Remover \"### \" do início das linhas (títulos em Markdown)\n  respostaHTML = respostaHTML.replace(/^###\\s?/gm, \"\");\n\n  // 2️⃣ Converter **texto** em <strong>texto</strong>\n  respostaHTML = respostaHTML.replace(/\\*\\*(.*?)\\*\\*/g, \"<strong>$1</strong>\");\n\n  // 3️⃣ [NOVO] Converter links [texto](url) para <a>, mas APENAS se a URL for do \"unoerpwiki\"\n  \n  // Regex para encontrar o padrão [texto](url)\n  const linkRegex = /\\[(.*?)\\]\\((.*?)\\)/g;\n  \n  // Usamos uma função como segundo argumento do 'replace'\n  respostaHTML = respostaHTML.replace(linkRegex, (match, texto, url) => {\n    // match: A string inteira, ex: \"[UNO ERP Wiki](https://unoerp...)\"\n    // texto: O 1º grupo de captura, ex: \"UNO ERP Wiki\"\n    // url:   O 2º grupo de captura, ex: \"https://unoerpwiki.herokuapp.com/...\"\n    \n    // ⬇️ Esta é a sua lógica de filtro!\n    if (url.includes('unoerpwiki.herokuapp.com')) {\n      // Se a URL contém o prefixo, converte para HTML\n      // Adicionei target=\"_blank\" para abrir o link em uma nova aba\n      return `<a href=\"${url}\" target=\"_blank\">${texto}</a>`;\n    } else {\n      // Se não for a URL desejada, retorna o texto original sem formatar\n      return match;\n    }\n  });\n\n  // 4️⃣ Converter quebras de linha em <br> (Mantido no final)\n  respostaHTML = respostaHTML.replace(/\\n/g, \"<br>\");\n\n  return {\n    json: {\n      resposta: respostaHTML\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1232,
+        -112
+      ],
+      "id": "83228353-1b70-4cc3-b7f1-d2af476a8e4c",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "unoerpai2.app.n8n.cloud",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+            "content-length": "29",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "accept-language": "en-US,en;q=0.9,pt-BR;q=0.8,pt;q=0.7",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "2804:7f0:6801:4eea:145e:a151:ddd1:2e50",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "BR",
+            "cf-ray": "99e311f882d9d97a-GRU",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/json",
+            "origin": "null",
+            "priority": "u=1, i",
+            "sec-ch-ua": "\"Chromium\";v=\"142\", \"Google Chrome\";v=\"142\", \"Not_A Brand\";v=\"99\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\"",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "cross-site",
+            "x-forwarded-for": "2804:7f0:6801:4eea:145e:a151:ddd1:2e50, 172.69.39.152",
+            "x-forwarded-host": "unoerpai2.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-99-5988668464-jfhnl",
+            "x-is-trusted": "yes",
+            "x-real-ip": "2804:7f0:6801:4eea:145e:a151:ddd1:2e50"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "pergunta": "rejeição 202"
+          },
+          "webhookUrl": "https://unoerpai2.app.n8n.cloud/webhook/c7683d30-5ffb-448b-a9cb-2dac0ac443bb",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "triggerCount": 1,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}
